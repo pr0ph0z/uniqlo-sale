@@ -28,13 +28,13 @@ func main() {
 	}
 
 	hash := xxhash.Sum64String(strings.Join(lastFetchedItems.ProductIDs, ""))
-	if lastFetchedItems.TotalProducts == products.Result.Pagination.Total {
+	if lastFetchedItems.TotalProducts == len(products) {
 		if lastFetchedItems.Hash == hash {
 			log.Warn().Msg("no updates on the products")
 			return
 		}
 	}
-	lastFetchedItems.TotalProducts = products.Result.Pagination.Total
+	lastFetchedItems.TotalProducts = len(products)
 	lastFetchedItems.Hash = hash
 
 	//err = internal.Process(products)
@@ -44,8 +44,8 @@ func main() {
 	//}
 
 	var productIDs []string
-	for _, item := range products.Result.Items {
-		productIDs = append(productIDs, item.ProductID)
+	for _, product := range products {
+		productIDs = append(productIDs, product.ProductID)
 	}
 
 	lastFetchedItems.ProductIDs = productIDs

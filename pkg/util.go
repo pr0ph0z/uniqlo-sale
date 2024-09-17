@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"github.com/pr0ph0z/uniqlo-sale/shared"
 	"github.com/rs/zerolog/log"
 	"io"
 	"math/rand"
@@ -16,10 +17,10 @@ var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 var LastFetchedFileName = "last-fetch.json"
 
 type LastFetch struct {
-	TotalProducts int       `json:"total_products"`
-	Hash          uint64    `json:"hash"`
-	ProductIDs    []string  `json:"product_ids"`
-	FetchedAt     time.Time `json:"fetched_at"`
+	TotalProducts int              `json:"total_products"`
+	Hash          uint64           `json:"hash"`
+	Products      []shared.Product `json:"products"`
+	FetchedAt     time.Time        `json:"fetched_at"`
 }
 
 func RandomString(length int) (text string) {
@@ -70,4 +71,19 @@ func WriteLastFetchedItems(lastFetchedItems LastFetch) (err error) {
 	}
 
 	return
+}
+
+func FindDifference(a, b []string) (diff []string) {
+	bSet := make(map[string]struct{}, len(b))
+	for _, v := range b {
+		bSet[v] = struct{}{}
+	}
+
+	for _, v := range a {
+		if _, exists := bSet[v]; !exists {
+			diff = append(diff, v)
+		}
+	}
+
+	return diff
 }

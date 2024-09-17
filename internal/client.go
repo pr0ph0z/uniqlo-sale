@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/pr0ph0z/uniqlo-sale/pkg"
+	"github.com/pr0ph0z/uniqlo-sale/shared"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"strconv"
-	"uniqlo-sale/pkg"
 )
 
 type Media struct {
@@ -83,7 +84,7 @@ func SendMediaGroup(medias []Media) (err error) {
 	return
 }
 
-func GetProducts() (products []Product, err error) {
+func GetProducts() (products []shared.Product, err error) {
 	const ProductLimit = 200
 	baseURL := "https://www.uniqlo.com/id/api/commerce/v3/en/products?path=15119&flagCodes=discount&offset=0&isV2Review=true&limit=" + strconv.Itoa(ProductLimit)
 
@@ -100,14 +101,14 @@ func GetProducts() (products []Product, err error) {
 	}
 	defer resp.Body.Close()
 
-	var productResponse ProductResponse
+	var productResponse shared.ProductResponse
 	err = json.NewDecoder(resp.Body).Decode(&productResponse)
 	if err != nil {
 		return
 	}
 
 	for _, product := range productResponse.Result.Items {
-		products = append(products, Product{
+		products = append(products, shared.Product{
 			ProductID:       product.ProductID,
 			Name:            product.Name,
 			ImageURL:        product.Images.Images[0].URL,
@@ -119,7 +120,7 @@ func GetProducts() (products []Product, err error) {
 	return
 }
 
-func Process(products []Product) (err error) {
+func Process(products []shared.Product) (err error) {
 	var medias []Media
 	for i, product := range products {
 		var (

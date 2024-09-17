@@ -2,13 +2,14 @@ package main
 
 import (
 	"github.com/cespare/xxhash"
+	"github.com/pr0ph0z/uniqlo-sale/internal"
+	"github.com/pr0ph0z/uniqlo-sale/pkg"
+	"github.com/pr0ph0z/uniqlo-sale/shared"
 	zlogger "github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 	"os"
 	"strings"
 	"time"
-	"uniqlo-sale/internal"
-	"uniqlo-sale/pkg"
 )
 
 func main() {
@@ -27,7 +28,23 @@ func main() {
 		return
 	}
 
-	hash := xxhash.Sum64String(strings.Join(lastFetchedItems.ProductIDs, ""))
+	lastFetchedItemsSet := make(map[string]struct{}, len(lastFetchedItems.Products))
+	for _, v := range lastFetchedItems.Products {
+		lastFetchedItemsSet[v.ProductID] = struct{}{}
+	}
+
+	var (
+		productIDs       []string
+		filteredProducts []shared.Product
+	)
+	for _, product := range products {
+		productIDs = append(productIDs, product.ProductID)
+		if _, exists := lastFetchedItemsSet[product.ProductID]; !exists {
+			filteredProducts = append(filteredProducts, product)
+		}
+	}
+
+	hash := xxhash.Sum64String(strings.Join(productIDs, ""))
 	if lastFetchedItems.TotalProducts == len(products) {
 		if lastFetchedItems.Hash == hash {
 			log.Warn().Msg("no updates on the products")
@@ -37,18 +54,13 @@ func main() {
 	lastFetchedItems.TotalProducts = len(products)
 	lastFetchedItems.Hash = hash
 
-	//err = internal.Process(products)
-	//if err != nil {
-	//	log.Err(err).Send()
-	//	return
-	//}
-
-	var productIDs []string
-	for _, product := range products {
-		productIDs = append(productIDs, product.ProductID)
+	err = internal.Process(filteredProducts)
+	if err != nil {
+		log.Err(err).Send()
+		return
 	}
 
-	lastFetchedItems.ProductIDs = productIDs
+	lastFetchedItems.Products = products
 	lastFetchedItems.FetchedAt = time.Now()
 
 	err = pkg.WriteLastFetchedItems(lastFetchedItems)

@@ -1,4 +1,4 @@
-module uniqlo-sale
+module github.com/pr0ph0z/uniqlo-sale
 
 go 1.21
 

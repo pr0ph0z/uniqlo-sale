@@ -1,4 +1,4 @@
-package internal
+package shared
 
 type ProductResponse struct {
 	Result Result `json:"result"`
@@ -40,9 +40,9 @@ type Pagination struct {
 }
 
 type Product struct {
-	ProductID       string
-	Name            string
-	ImageURL        string
-	BasePrice       string
-	DiscountedPrice string
+	ProductID       string `json:"product_id"`
+	Name            string `json:"name"`
+	ImageURL        string `json:"image_url"`
+	BasePrice       string `json:"base_price"`
+	DiscountedPrice string `json:"discounted_price"`
 }

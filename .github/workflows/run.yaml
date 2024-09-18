@@ -25,4 +25,4 @@ jobs:
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commited_message: Update fetched item
+          committed_message: Update fetched item

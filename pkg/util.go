@@ -72,18 +72,3 @@ func WriteLastFetchedItems(lastFetchedItems LastFetch) (err error) {
 
 	return
 }
-
-func FindDifference(a, b []string) (diff []string) {
-	bSet := make(map[string]struct{}, len(b))
-	for _, v := range b {
-		bSet[v] = struct{}{}
-	}
-
-	for _, v := range a {
-		if _, exists := bSet[v]; !exists {
-			diff = append(diff, v)
-		}
-	}
-
-	return diff
-}

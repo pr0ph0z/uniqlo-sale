@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/pr0ph0z/uniqlo-sale/pkg"
 	"github.com/pr0ph0z/uniqlo-sale/shared"
@@ -78,7 +79,14 @@ func SendMediaGroup(medias []Media) (err error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		panic("failed to process the request")
+		var bodyBytes []byte
+		bodyBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return
+		}
+		bodyString := string(bodyBytes)
+		err = errors.New(bodyString)
+		return
 	}
 
 	return

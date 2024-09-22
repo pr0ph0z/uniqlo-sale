@@ -15,6 +15,7 @@ import (
 func main() {
 	zlogger.ErrorStackMarshaler = pkgerrors.MarshalStack
 	log := zlogger.New(os.Stdout).With().Caller().Logger()
+	log.Info().Msg("starting the program")
 
 	lastFetchedItems, err := pkg.LastFetchedItems()
 	if err != nil {
@@ -45,15 +46,14 @@ func main() {
 	}
 
 	hash := xxhash.Sum64String(strings.Join(productIDs, ""))
-	if lastFetchedItems.TotalProducts == len(products) {
-		if lastFetchedItems.Hash == hash {
-			log.Warn().Msg("no updates on the products")
-			return
-		}
+	if lastFetchedItems.Hash == hash {
+		log.Warn().Msg("no updates on the products")
+		return
 	}
 	lastFetchedItems.TotalProducts = len(products)
 	lastFetchedItems.Hash = hash
 
+	log.Info().Msg("processing")
 	err = internal.Process(filteredProducts)
 	if err != nil {
 		log.Err(err).Send()
@@ -69,5 +69,5 @@ func main() {
 		return
 	}
 
-	log.Info().Msg("finished")
+	log.Info().Msgf("finished with %d new products", len(filteredProducts))
 }

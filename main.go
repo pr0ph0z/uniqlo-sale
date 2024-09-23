@@ -46,7 +46,7 @@ func main() {
 	}
 
 	hash := xxhash.Sum64String(strings.Join(productIDs, ""))
-	if lastFetchedItems.Hash == hash {
+	if lastFetchedItems.TotalProducts > len(products) || lastFetchedItems.Hash == hash {
 		log.Warn().Msg("no updates on the products")
 		return
 	}

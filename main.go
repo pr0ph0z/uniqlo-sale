@@ -14,7 +14,7 @@ import (
 
 func main() {
 	zlogger.ErrorStackMarshaler = pkgerrors.MarshalStack
-	log := zlogger.New(os.Stdout).With().Caller().Logger()
+	log := zlogger.New(os.Stdout).With().Caller().Timestamp().Logger()
 	log.Info().Msg("starting the program")
 
 	lastFetchedItems, err := pkg.LastFetchedItems()
@@ -22,12 +22,14 @@ func main() {
 		log.Err(err).Send()
 		return
 	}
+	log.Info().Msgf("last fetched items: %d", lastFetchedItems.TotalProducts)
 
 	products, err := internal.GetProducts()
 	if err != nil {
 		log.Err(err).Send()
 		return
 	}
+	log.Info().Msgf("fetched items: %d", len(products))
 
 	lastFetchedItemsSet := make(map[string]struct{}, len(lastFetchedItems.Products))
 	for _, v := range lastFetchedItems.Products {

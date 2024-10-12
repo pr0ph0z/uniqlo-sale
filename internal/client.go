@@ -129,45 +129,46 @@ func GetProducts() (products []shared.Product, err error) {
 }
 
 func Process(products []shared.Product) (err error) {
+	chunkedProducts := chunkBy(products, len(products))
 	if len(products) > 10 {
-		chunkedProducts := chunkBy(products, 10)
-		for _, products = range chunkedProducts {
-			var medias []Media
-			for i, product := range products {
-				var (
-					img  pkg.Image
-					path string
-				)
-				img, err = pkg.Download(fmt.Sprintf("%s?width=800", product.ImageURL))
-				if err != nil {
-					return
-				}
-				img.Name = product.Name
-				img.Price, err = pkg.RemoveZeroes(product.BasePrice)
-				if err != nil {
-					return
-				}
-				img.DiscountedPrice, err = pkg.RemoveZeroes(product.DiscountedPrice)
-				if err != nil {
-					return
-				}
-
-				path, err = img.PutPrice()
-				if err != nil {
-					return
-				}
-				medias = append(medias, Media{
-					Type:    "photo",
-					Media:   "attach://file" + strconv.Itoa(i),
-					File:    path,
-					Caption: "https://www.uniqlo.com/id/id/products/" + product.ProductID,
-				})
-			}
-
-			err = SendMediaGroup(medias)
+		chunkedProducts = chunkBy(products, 10)
+	}
+	for _, products = range chunkedProducts {
+		var medias []Media
+		for i, product := range products {
+			var (
+				img  pkg.Image
+				path string
+			)
+			img, err = pkg.Download(fmt.Sprintf("%s?width=800", product.ImageURL))
 			if err != nil {
 				return
 			}
+			img.Name = product.Name
+			img.Price, err = pkg.RemoveZeroes(product.BasePrice)
+			if err != nil {
+				return
+			}
+			img.DiscountedPrice, err = pkg.RemoveZeroes(product.DiscountedPrice)
+			if err != nil {
+				return
+			}
+
+			path, err = img.PutPrice()
+			if err != nil {
+				return
+			}
+			medias = append(medias, Media{
+				Type:    "photo",
+				Media:   "attach://file" + strconv.Itoa(i),
+				File:    path,
+				Caption: "https://www.uniqlo.com/id/id/products/" + product.ProductID,
+			})
+		}
+
+		err = SendMediaGroup(medias)
+		if err != nil {
+			return
 		}
 	}
 

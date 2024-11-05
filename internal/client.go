@@ -162,7 +162,7 @@ func Process(products []shared.Product) (err error) {
 				Type:    "photo",
 				Media:   "attach://file" + strconv.Itoa(i),
 				File:    path,
-				Caption: "https://www.uniqlo.com/id/id/products/" + product.ProductID,
+				Caption: fmt.Sprintf("%s\nhttps://www.uniqlo.com/id/id/products/%s", product.Name, product.ProductID),
 			})
 		}
 

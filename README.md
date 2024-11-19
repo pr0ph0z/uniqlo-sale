@@ -23,7 +23,7 @@ A Golang-based scraper that tracks Uniqlo items on sale and sends the results to
    Set the following environment variables in your shell or your shell script
    ```env  
    BOT_TOKEN=your_bot_token_here
-   TELEGRAM_CHAT_ID=your_chat_id_here
+   CHAT_ID=your_chat_id_here
    ```  
 
 ### Usage  

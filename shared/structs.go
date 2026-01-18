@@ -17,11 +17,11 @@ type Item struct {
 }
 
 type Images struct {
-	Images []Image `json:"main"`
+	Images []Image `json:"sub"`
 }
 
 type Image struct {
-	URL string `json:"url"`
+	URL string `json:"image"`
 }
 
 type Prices struct {
@@ -30,7 +30,7 @@ type Prices struct {
 }
 
 type Price struct {
-	Value string `json:"value"`
+	Value int `json:"value"`
 }
 
 type Pagination struct {

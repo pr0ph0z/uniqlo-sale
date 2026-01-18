@@ -1,15 +1,16 @@
 package main
 
 import (
+	"os"
+	"strings"
+	"time"
+
 	"github.com/cespare/xxhash"
 	"github.com/pr0ph0z/uniqlo-sale/internal"
 	"github.com/pr0ph0z/uniqlo-sale/pkg"
 	"github.com/pr0ph0z/uniqlo-sale/shared"
 	zlogger "github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
-	"os"
-	"strings"
-	"time"
 )
 
 func main() {
@@ -29,7 +30,7 @@ func main() {
 		log.Err(err).Send()
 		return
 	}
-	log.Info().Msgf("fetched items: %d", len(products))
+	log.Info().Msgf("newly fetched items: %d", len(products))
 
 	lastFetchedItemsSet := make(map[string]struct{}, len(lastFetchedItems.Products))
 	for _, v := range lastFetchedItems.Products {

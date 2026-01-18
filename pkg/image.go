@@ -2,12 +2,13 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/fogleman/gg"
-	"github.com/golang/freetype/truetype"
-	"github.com/leekchan/accounting"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
+
+	"github.com/fogleman/gg"
+	"github.com/golang/freetype/truetype"
+	"github.com/leekchan/accounting"
 
 	"io"
 	"net/http"
@@ -18,12 +19,13 @@ import (
 const FontFileName = "UniqloProBold.ttf"
 
 type Image struct {
-	Name            string
-	Price           int
-	DiscountedPrice int
-	Path            string
-	Width           int
-	Height          int
+	Name                 string
+	Price                int
+	DiscountedPrice      int
+	DiscountedPercentage int
+	Path                 string
+	Width                int
+	Height               int
 }
 
 func Download(url string) (img Image, err error) {
@@ -97,7 +99,7 @@ func (img Image) PutPrice() (path string, err error) {
 
 	context.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 55}))
 	context.SetHexColor("#FF0000")
-	context.DrawStringWrapped(ac.FormatMoney(img.DiscountedPrice), 0, float64(img.Height+170), 0, 0, float64(img.Width), float64(1), gg.AlignLeft)
+	context.DrawStringWrapped(fmt.Sprintf("%s (%d%%)", ac.FormatMoney(img.DiscountedPrice), img.DiscountedPercentage), 0, float64(img.Height+170), 0, 0, float64(img.Width), float64(1), gg.AlignLeft)
 
 	path = fmt.Sprintf("%s.png", filepath.Join(os.TempDir(), RandomString(10)))
 	err = context.SavePNG(path)

@@ -1,0 +1,20 @@
+README.md
+  h_49c05d64b79ad7 37-39
+internal/client.go
+  h_49c05d64b79ad7 13,168,226,237-271,292-293,315
+pkg/image.go
+  h_49c05d64b79ad7 15,18-21,28-29,93-114,116-143,147,151,162-185
+shared/structs.go
+  h_49c05d64b79ad7 13-25,29-30,53-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5cedb36736592bd51a1880f592c889a1e3f7d61d",
+  "prompts": {},
+  "humans": {
+    "h_49c05d64b79ad7": {
+      "author": "Mohamad Radisha <pr0ph0z23@gmail.com>"
+    }
+  }
+}

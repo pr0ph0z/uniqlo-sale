@@ -1,0 +1,18 @@
+README.md
+  h_49c05d64b79ad7 37
+internal/client.go
+  h_49c05d64b79ad7 169,234,250-253,293
+shared/structs.go
+  h_49c05d64b79ad7 13-18,46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7a91266c36c9797d38a08305a847d8955db97758",
+  "prompts": {},
+  "humans": {
+    "h_49c05d64b79ad7": {
+      "author": "Mohamad Radisha <pr0ph0z23@gmail.com>"
+    }
+  }
+}

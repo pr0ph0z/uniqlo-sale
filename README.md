@@ -34,7 +34,9 @@ A Golang-based scraper that tracks Uniqlo items on sale and sends the results to
    ```  
 
 2. The results will automatically be sent to your configured Telegram chat.  
-   Each link selects the sale color. Choose your size on the Uniqlo product page.
+   Each product image shows the sale colors, color swatches, and sizes below the item name.
+   The product link selects a listed sale color and leaves the size unset.
+   Uniqlo does not report which sizes are available for each listed color.
 
 ### Limitation
 

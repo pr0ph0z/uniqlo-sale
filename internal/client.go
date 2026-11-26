@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -164,14 +165,7 @@ func GetProducts() (products []shared.Product, err error) {
 			}
 		}
 		if imageURL != "" {
-			products = append(products, shared.Product{
-				ProductID:       product.ProductID,
-				ProductURL:      productURL(product),
-				Name:            product.Name,
-				ImageURL:        imageURL,
-				BasePrice:       strconv.Itoa(product.Prices.Base.Value),
-				DiscountedPrice: strconv.Itoa(product.Prices.Promo.Value),
-			})
+			products = append(products, saleProduct(product, imageURL))
 		}
 	}
 
@@ -229,14 +223,7 @@ func GetProducts() (products []shared.Product, err error) {
 				}
 			}
 			if imageURL != "" {
-				products = append(products, shared.Product{
-					ProductID:       product.ProductID,
-					ProductURL:      productURL(product),
-					Name:            product.Name,
-					ImageURL:        imageURL,
-					BasePrice:       strconv.Itoa(product.Prices.Base.Value),
-					DiscountedPrice: strconv.Itoa(product.Prices.Promo.Value),
-				})
+				products = append(products, saleProduct(product, imageURL))
 			} else {
 				log.Warn().Msgf("no image url found for product %s", product.ProductID)
 				continue
@@ -247,8 +234,41 @@ func GetProducts() (products []shared.Product, err error) {
 	return
 }
 
-func productURL(item shared.Item) string {
-	return fmt.Sprintf("https://www.uniqlo.com/id/id/products/%s/%s?colorDisplayCode=%s", item.ProductID, item.PriceGroup, item.RepresentativeColorDisplayCode)
+func saleProduct(item shared.Item, imageURL string) shared.Product {
+	product := shared.Product{
+		ProductID:       item.ProductID,
+		Name:            item.Name,
+		ImageURL:        imageURL,
+		BasePrice:       strconv.Itoa(item.Prices.Base.Value),
+		DiscountedPrice: strconv.Itoa(item.Prices.Promo.Value),
+		SaleColors:      make([]shared.SaleColor, 0, len(item.Colors)),
+		SaleSizes:       make([]string, 0, len(item.Sizes)),
+	}
+	colorCode := ""
+	for _, color := range item.Colors {
+		if colorCode == "" || color.DisplayCode == item.RepresentativeColorDisplayCode {
+			colorCode = color.DisplayCode
+		}
+		if color.Name != "" {
+			product.SaleColors = append(product.SaleColors, shared.SaleColor{
+				Name:      color.Name,
+				SwatchURL: item.Images.Chips[color.DisplayCode],
+			})
+		}
+	}
+	for _, size := range item.Sizes {
+		if size.Name != "" {
+			product.SaleSizes = append(product.SaleSizes, size.Name)
+		}
+	}
+	product.ProductURL = "https://www.uniqlo.com/id/id/products/" + url.PathEscape(item.ProductID)
+	if item.PriceGroup != "" {
+		product.ProductURL += "/" + url.PathEscape(item.PriceGroup)
+	}
+	if colorCode != "" {
+		product.ProductURL += "?colorDisplayCode=" + url.QueryEscape(colorCode)
+	}
+	return product
 }
 
 func Process(products []shared.Product) (err error) {
@@ -269,6 +289,8 @@ func Process(products []shared.Product) (err error) {
 				return
 			}
 			img.Name = product.Name
+			img.SaleColors = product.SaleColors
+			img.SaleSizes = product.SaleSizes
 			img.Price, err = pkg.RemoveZeroes(product.BasePrice)
 			if err != nil {
 				log.Err(err).Msgf("error removing zeroes from base price")
@@ -290,7 +312,7 @@ func Process(products []shared.Product) (err error) {
 				Type:    "photo",
 				Media:   "attach://file" + strconv.Itoa(i),
 				File:    path,
-				Caption: fmt.Sprintf("%s\n%s", product.Name, product.ProductURL),
+				Caption: product.Name + "\n" + product.ProductURL,
 			})
 		}
 

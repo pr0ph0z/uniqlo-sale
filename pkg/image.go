@@ -12,14 +12,21 @@ import (
 
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/pr0ph0z/uniqlo-sale/shared"
 )
 
 const FontFileName = "UniqloProBold.ttf"
 
 type Image struct {
 	Name                 string
+	SaleColors           []shared.SaleColor
+	SaleSizes            []string
 	Price                int
 	DiscountedPrice      int
 	DiscountedPercentage int
@@ -63,15 +70,10 @@ func Download(url string) (img Image, err error) {
 }
 
 func (img Image) PutPrice() (path string, err error) {
-	context := gg.NewContext(img.Width, img.Height+250)
-	context.SetHexColor("#FFFFFF")
-	context.Clear()
-
 	im, err := gg.LoadImage(img.Path)
 	if err != nil {
 		return
 	}
-	context.DrawImage(im, 0, 0)
 
 	dir, err := os.Getwd()
 	if err != nil {
@@ -88,18 +90,65 @@ func (img Image) PutPrice() (path string, err error) {
 		return
 	}
 
-	context.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 50}))
+	const padding = 16
+	titleFace := truetype.NewFace(font, &truetype.Options{Size: 50})
+	detailFace := truetype.NewFace(font, &truetype.Options{Size: 30})
+	measure := gg.NewContext(1, 1)
+	width := float64(img.Width - 2*padding)
+	measure.SetFontFace(titleFace)
+	title := measure.WordWrap(img.Name, width)
+	measure.SetFontFace(detailFace)
+	var sizes []string
+	if len(img.SaleSizes) > 0 {
+		sizes = measure.WordWrap("Sale sizes: "+strings.Join(img.SaleSizes, ", "), width)
+	}
+
+	colorHeight := 0
+	if len(img.SaleColors) > 0 {
+		colorHeight = 40 + 44*len(img.SaleColors)
+	}
+	height := img.Height + 2*padding + 58*len(title) + colorHeight + 38*len(sizes) + 105
+	context := gg.NewContext(img.Width, height)
+	context.SetHexColor("#FFFFFF")
+	context.Clear()
+	context.DrawImage(im, 0, 0)
 	context.SetHexColor("#000000")
-	context.DrawStringWrapped(img.Name, 0, float64(img.Height+10), 0, 0, float64(img.Width), float64(1), gg.AlignLeft)
+	y := img.Height + padding
+	context.SetFontFace(titleFace)
+	for _, line := range title {
+		context.DrawString(line, padding, float64(y+45))
+		y += 58
+	}
+	context.SetFontFace(detailFace)
+	if len(img.SaleColors) > 0 {
+		context.DrawString("Sale colors:", padding, float64(y+30))
+		y += 40
+		for _, color := range img.SaleColors {
+			x := float64(padding)
+			if swatch := loadSwatch(color.SwatchURL); swatch != nil {
+				context.Push()
+				context.Translate(x, float64(y))
+				context.Scale(36/float64(swatch.Bounds().Dx()), 36/float64(swatch.Bounds().Dy()))
+				context.DrawImage(swatch, 0, 0)
+				context.Pop()
+				x += 46
+			}
+			context.DrawString(color.Name, x, float64(y+29))
+			y += 44
+		}
+	}
+	for _, line := range sizes {
+		context.DrawString(line, padding, float64(y+30))
+		y += 38
+	}
 
 	ac := accounting.Accounting{Symbol: "Rp", Precision: 0,
 		Format: "%s%v", Thousand: "."}
-	context.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 30}))
-	drawTextWithStrikethrough(context, 0, float64(img.Height+160), ac.FormatMoney(img.Price))
+	drawTextWithStrikethrough(context, padding, float64(y+35), ac.FormatMoney(img.Price))
 
 	context.SetFontFace(truetype.NewFace(font, &truetype.Options{Size: 55}))
 	context.SetHexColor("#FF0000")
-	context.DrawStringWrapped(fmt.Sprintf("%s (%d%%)", ac.FormatMoney(img.DiscountedPrice), img.DiscountedPercentage), 0, float64(img.Height+170), 0, 0, float64(img.Width), float64(1), gg.AlignLeft)
+	context.DrawString(fmt.Sprintf("%s (%d%%)", ac.FormatMoney(img.DiscountedPrice), img.DiscountedPercentage), padding, float64(y+92))
 
 	path = fmt.Sprintf("%s.png", filepath.Join(os.TempDir(), RandomString(10)))
 	err = context.SavePNG(path)
@@ -108,6 +157,30 @@ func (img Image) PutPrice() (path string, err error) {
 	}
 
 	return
+}
+
+func loadSwatch(rawURL string) image.Image {
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Scheme != "https" || u.Host != "image.uniqlo.com" {
+		return nil
+	}
+	query := u.Query()
+	query.Set("width", "36")
+	u.RawQuery = query.Encode()
+	client := http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get(u.String())
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil
+	}
+	swatch, _, err := image.Decode(resp.Body)
+	if err != nil || swatch.Bounds().Empty() {
+		return nil
+	}
+	return swatch
 }
 
 func drawTextWithStrikethrough(dc *gg.Context, x, y float64, text string) {

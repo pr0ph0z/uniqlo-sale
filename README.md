@@ -34,6 +34,7 @@ A Golang-based scraper that tracks Uniqlo items on sale and sends the results to
    ```  
 
 2. The results will automatically be sent to your configured Telegram chat.  
+   Each link selects the sale color. Choose your size on the Uniqlo product page.
 
 ### Limitation
 

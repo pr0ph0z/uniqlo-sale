@@ -166,6 +166,7 @@ func GetProducts() (products []shared.Product, err error) {
 		if imageURL != "" {
 			products = append(products, shared.Product{
 				ProductID:       product.ProductID,
+				ProductURL:      productURL(product),
 				Name:            product.Name,
 				ImageURL:        imageURL,
 				BasePrice:       strconv.Itoa(product.Prices.Base.Value),
@@ -230,6 +231,7 @@ func GetProducts() (products []shared.Product, err error) {
 			if imageURL != "" {
 				products = append(products, shared.Product{
 					ProductID:       product.ProductID,
+					ProductURL:      productURL(product),
 					Name:            product.Name,
 					ImageURL:        imageURL,
 					BasePrice:       strconv.Itoa(product.Prices.Base.Value),
@@ -243,6 +245,10 @@ func GetProducts() (products []shared.Product, err error) {
 	}
 
 	return
+}
+
+func productURL(item shared.Item) string {
+	return fmt.Sprintf("https://www.uniqlo.com/id/id/products/%s/%s?colorDisplayCode=%s", item.ProductID, item.PriceGroup, item.RepresentativeColorDisplayCode)
 }
 
 func Process(products []shared.Product) (err error) {
@@ -284,7 +290,7 @@ func Process(products []shared.Product) (err error) {
 				Type:    "photo",
 				Media:   "attach://file" + strconv.Itoa(i),
 				File:    path,
-				Caption: fmt.Sprintf("%s\nhttps://www.uniqlo.com/id/id/products/%s", product.Name, product.ProductID),
+				Caption: fmt.Sprintf("%s\n%s", product.Name, product.ProductURL),
 			})
 		}
 

@@ -10,10 +10,12 @@ type Result struct {
 }
 
 type Item struct {
-	Images    Images `json:"images"`
-	Name      string `json:"name"`
-	Prices    Prices `json:"prices"`
-	ProductID string `json:"productId"`
+	Images                         Images `json:"images"`
+	Name                           string `json:"name"`
+	Prices                         Prices `json:"prices"`
+	ProductID                      string `json:"productId"`
+	PriceGroup                     string `json:"priceGroup"`
+	RepresentativeColorDisplayCode string `json:"representativeColorDisplayCode"`
 }
 
 type Images struct {
@@ -41,6 +43,7 @@ type Pagination struct {
 
 type Product struct {
 	ProductID       string `json:"product_id"`
+	ProductURL      string `json:"product_url"`
 	Name            string `json:"name"`
 	ImageURL        string `json:"image_url"`
 	BasePrice       string `json:"base_price"`
